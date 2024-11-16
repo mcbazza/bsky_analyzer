@@ -9,8 +9,7 @@ This is that.
 
 Coming soon....
 
-![image](https://github.com/user-attachments/assets/e0d58052-73a4-4be5-afc0-94e5f98f9ccd)
-
+![image](https://github.com/user-attachments/assets/96671e27-6ce5-4ed2-91a1-d5341926108f)
 
 ---
 Shouts out to X0rz for `tweets_analyzer`. It was great while it lasted. \
