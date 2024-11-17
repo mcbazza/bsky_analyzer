@@ -36,7 +36,7 @@ from ascii_graph.colors import Gre, Yel, Red
 from ascii_graph.colordata import hcolor
 #endregion
 
-__version__ = '0.1-dev'
+__version__ = '0.1-alpha'
 
 try:
     from urllib.parse import urlparse
@@ -76,7 +76,7 @@ parser = argparse.ArgumentParser(description=
 parser.add_argument('-l', '--limit', metavar='N', type=int, default=1000,
                     help='limit the number of posts to retreive (default=1000)')
 # parser.add_argument('-n', '--name', required=True, metavar="profile_name",
-parser.add_argument('-n', '--name', metavar="profile_name", default="mcbazza.com",
+parser.add_argument('-n', '--name', metavar="profile_name", default="bsky.app",
                     help='target profile_name')
 parser.add_argument('--no-color', action='store_true',
                     help='disables colored output')
@@ -92,9 +92,7 @@ actor = args.name
 def cprint(strng):
     if not color_supported:
         strng = ansi_escape.sub('', strng)
-    # if args.json is False:
     print(strng)
-    # export_string(strng)
 #endregion
 
 #region int_to_month(day)
@@ -213,18 +211,13 @@ def main() -> None:
 
             # The text format that we receive the date as
             # This is a fudge, as I noted during testing that not all posts came back with milliseconds
-            if post_created_len == 24:
-                dt_format = "%Y-%m-%dT%H:%M:%S.%fZ"
-            else:
-                dt_format = "%Y-%m-%dT%H:%M:%SZ"
 
-            post_created = datetime.strptime(post_created_str, dt_format)
+            dt_format = "%Y-%m-%dT%H:%M:%S"
+            post_created = datetime.strptime(post_created_str[0:19], dt_format)
 
             end_date = end_date or post_created
             start_date = post_created
 
-            post_text = feed[post_no].post.record.text
-            
             activity_hourly["%s:00" % str(post_created.hour).zfill(2)] += 1
             activity_weekly[str(post_created.weekday())] += 1
             activity_monthly["%s" % str((post_created.month-1)).zfill(2)] += 1
@@ -242,10 +235,10 @@ def main() -> None:
 
     # Checking if we have enough data (considering it's good to have at least 30 days of data)
     if (end_date - start_date).days < 30 and (post_count < posts_count):
-         cprint("[\033[91m!\033[0m] Looks like we do not have enough posts from user, you should consider retrying (--limit)")
+        cprint("[\033[91m!\033[0m] Looks like we do not have enough posts from user, you should consider retrying (--limit)")
 
-    if (end_date - start_date).days != 0:
-        cprint("[+] Average number of posts per day: \033[1m%.1f\033[0m" % (posts_count / float((end_date - start_date).days)))
+    #if (end_date - start_date).days != 0:
+    #    cprint("[+] Average number of posts per day: \033[1m%.1f\033[0m" % (post_count / float((end_date - start_date).days)))
 
     # Only display the required summary graphs requested
     if "d" in args.summaries.lower(): print_charts(activity_hourly, "Daily activity distribution (per hour)", dwm='D')
