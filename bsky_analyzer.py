@@ -24,10 +24,12 @@
 
 #region import libraries
 
+import requests
 from atproto import Client
 
 from datetime import datetime
 
+import os
 import re
 import argparse
 import numpy
@@ -36,14 +38,23 @@ from ascii_graph.colors import Gre, Yel, Red
 from ascii_graph.colordata import hcolor
 #endregion
 
-__version__ = '0.1-alpha'
+__version__ = '0.1-dev'
 
 try:
     from urllib.parse import urlparse
 except ImportError:
     from urlparse import urlparse
 
+# Read the user/pass from secrets.py
 from secrets import handle, password
+
+# Take a copy of the user/pass from secrets.py
+secUser = handle
+secPassword = password
+
+# Read them in from environment variables if present. Otherwise, set to the values read in from secrets.py
+handle = os.getenv("BSKY_USER", secUser) 
+password = os.getenv("BSKY_PWD", secPassword) 
 
 #region Set initial veriables
 
@@ -75,8 +86,7 @@ parser = argparse.ArgumentParser(description=
                                  usage='%(prog)s -n <profile_name> [options]')
 parser.add_argument('-l', '--limit', metavar='N', type=int, default=1000,
                     help='limit the number of posts to retreive (default=1000)')
-# parser.add_argument('-n', '--name', required=True, metavar="profile_name",
-parser.add_argument('-n', '--name', metavar="profile_name", default="bsky.app",
+parser.add_argument('-n', '--name', metavar="profile_name",
                     help='target profile_name')
 parser.add_argument('--no-color', action='store_true',
                     help='disables colored output')
@@ -92,7 +102,9 @@ actor = args.name
 def cprint(strng):
     if not color_supported:
         strng = ansi_escape.sub('', strng)
+    # if args.json is False:
     print(strng)
+    # export_string(strng)
 #endregion
 
 #region int_to_month(day)
@@ -162,6 +174,8 @@ def main() -> None:
     global start_date
     global end_date
 
+    cprint("[+] Getting @%s account data..." % actor)
+
     client = Client()
     client.login(handle, password)
 
@@ -218,6 +232,16 @@ def main() -> None:
             end_date = end_date or post_created
             start_date = post_created
 
+            post_text = feed[post_no].post.record.text
+            # post_tags = ' '.join(feed[post_no].post.record.tags)
+            # post_langs = feed[post_no].post.record.langs
+
+            # print('Post : '+str(post_no))
+            # print('  Created : '+str(post_created))
+            # print('  Text    : '+post_text)
+            # print('  Tags    : '+post_tags)
+            # print('  langs   : '+post_langs)
+            
             activity_hourly["%s:00" % str(post_created.hour).zfill(2)] += 1
             activity_weekly[str(post_created.weekday())] += 1
             activity_monthly["%s" % str((post_created.month-1)).zfill(2)] += 1
@@ -237,15 +261,14 @@ def main() -> None:
     if (end_date - start_date).days < 30 and (post_count < posts_count):
         cprint("[\033[91m!\033[0m] Looks like we do not have enough posts from user, you should consider retrying (--limit)")
 
-    #if (end_date - start_date).days != 0:
-    #    cprint("[+] Average number of posts per day: \033[1m%.1f\033[0m" % (post_count / float((end_date - start_date).days)))
+    if (end_date - start_date).days != 0:
+        cprint("[+] Average number of posts per day: \033[1m%.1f\033[0m" % (post_count / float((end_date - start_date).days)))
 
     # Only display the required summary graphs requested
     if "d" in args.summaries.lower(): print_charts(activity_hourly, "Daily activity distribution (per hour)", dwm='D')
     if "w" in args.summaries.lower(): print_charts(activity_weekly, "Weekly activity distribution (per day)", dwm='W')
     if "m" in args.summaries.lower(): print_charts(activity_monthly, "Monthly activity distribution (per month)", dwm='M')
 #endregion
-
 
 #region Call main
 if __name__ == '__main__':
