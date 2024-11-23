@@ -8,7 +8,7 @@
 
 ## Getting it setup
 You're going to need the files from this branch of the repo. \
-If you're happy with using Git:
+If you're happy with using Git: \
 `git clone https://github.com/mcbazza/bsky_analyzer/ --branch 0.1-alpha-docker`
 
 If you don't know about that, but can use wget:
