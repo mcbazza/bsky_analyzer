@@ -13,7 +13,7 @@ RUN apk add --update --no-cache git wget python3 py3-pip
 RUN ln -sf python3 /usr/bin/python
 RUN python3 -m pip install --break-system-packages  --upgrade pip
 
-RUN git clone https://github.com/mcbazza/bsky_analyzer/ --branch 0.1-alpha
+RUN git clone https://github.com/mcbazza/bsky_analyzer/ --branch 0.1-alpha-docker
 RUN cd bsky_analyzer
 
 RUN pip install --break-system-packages argparse numpy datetime requests
